@@ -2,6 +2,7 @@ import express, { Application, Request, Response } from 'express';
 import dotenv from "dotenv";
 import pool from './config/db.js';
 import redis from './config/redis.js';
+import errorHandler from "./middleware/errorHandler.js"
 
 dotenv.config();
 
@@ -48,4 +49,8 @@ async function start(){
     }
 }
 
+
+app.use(errorHandler);
 start();
+
+

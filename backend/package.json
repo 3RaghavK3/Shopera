@@ -19,6 +19,7 @@
     "@types/pg": "^8.20.0",
     "eslint": "^10.7.0",
     "prettier": "^3.9.5",
+    "supabase": "^2.109.1",
     "tsx": "^4.23.1"
   },
   "dependencies": {

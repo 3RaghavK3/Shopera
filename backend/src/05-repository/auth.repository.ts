@@ -1,21 +1,23 @@
 import pool from "../config/db.js";
 
 export async function findUserByEmail(email: string) {
-    const result = await pool.query(
-        `select *from users where email = $1 limit 1;`,[email]
-    );
+  const result = await pool.query(
+    `select *from users where email = $1 limit 1;`,
+    [email],
+  );
 
-    return result.rows[0] ?? null;
+  return result.rows[0] ?? null;
 }
 
 export async function createUser(
-    email: string,
-    name: string,
-    password: string
+  name: string,
+  email: string,
+  passwordHash: string,
 ) {
-    const result = await pool.query(
-        `insert into users (name, email, password_hash) values ($1, $2, $3) returning *`,[name, email, password]
-    );
+  const result = await pool.query(
+    `insert into users (name, email, password_hash) values ($1, $2, $3) returning *`,
+    [name, email, passwordHash],
+  );
 
-    return result.rows[0];
+  return result.rows[0];
 }

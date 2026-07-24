@@ -4,7 +4,6 @@ import AppError from "../utils/AppError.js";
 
 
 const validate=(schema:z.ZodType)=>(
-    err:Error,
     req:Request,
     res:Response,
     next:NextFunction,

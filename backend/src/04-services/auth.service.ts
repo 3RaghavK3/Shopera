@@ -4,6 +4,10 @@ import bcrypt from "bcrypt"
 import redis from "../config/redis.js";
 import { generateOtp } from "../utils/otp.js";
 import resend from "../config/email.js";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const sendOtp =async(email:string)=>{
        const otp=generateOtp();
@@ -87,4 +91,27 @@ export const resendOtp=async(email:string)=>{
      return {
       message:"Otp resent.Please verify your email"
      }
+}
+
+export const login =async(email:string,password:string)=>{
+     const user=await authrepository.findUserByEmail(email);
+     if(!user){
+         throw new AppError(401,"No User Found");
+     }
+     const compare=await bcrypt.compare(password,user.password_hash,)
+
+     if(!compare){
+         throw new AppError(401,"Invalid Password.Please try Again");
+     }
+
+     const token = jwt.sign(
+      {
+         userId: user.user_id,
+         email: user.email,
+      },
+      process.env.JWT_SECRET!,
+      {
+         expiresIn: "15m",
+      }
+      );
 }

@@ -2,7 +2,7 @@ import pool from "../config/db.js";
 
 export async function findUserByEmail(email: string) {
   const result = await pool.query(
-    `select *from users where email = $1 limit 1;`,
+    `select * from users where email = $1 limit 1;`,
     [email],
   );
 

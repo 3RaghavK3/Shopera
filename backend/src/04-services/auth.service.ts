@@ -1,4 +1,4 @@
-import * as authrepository from "../repository/auth.repository.js"
+import * as authrepository from "../05-repository/auth.repository.js"
 import AppError from "../utils/AppError.js";
 import bcrypt from "bcrypt"
 

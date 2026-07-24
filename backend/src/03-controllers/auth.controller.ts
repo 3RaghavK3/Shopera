@@ -1,5 +1,5 @@
 import type { Request, Response ,NextFunction } from "express";
-import * as authservice from "../services/auth.service.js"
+import * as authservice from "../04-services/auth.service.js"
 
 export const signup = async (req: Request, res: Response ,next:NextFunction) => {
     try{

@@ -2,8 +2,8 @@ import express, { Application, Request, Response } from 'express';
 import dotenv from "dotenv";
 import pool from './config/db.js';
 import redis from './config/redis.js';
-import errorHandler from "./middleware/errorHandler.js"
-import authRoutes from "./routes/auth.routes.js"
+import errorHandler from "./02-middleware/errorHandler.js"
+import authRoutes from "./01-routes/auth.routes.js"
 
 dotenv.config();
 

@@ -12,10 +12,6 @@ router.post("/signup/resend-otp", authController.resendOtp);
 
 router.post("/login", authController.login);
 
-router.post("/refresh-token", authController.refreshToken);
-
-router.post("/oauth/:authProvider", authController.oauth);
-
 router.post("/forgot-password", authController.forgotPassword);
 
 router.post("/forgot-password/verify-otp", authController.verifyForgotOtp);
@@ -25,5 +21,9 @@ router.post("/forgot-password/resend-otp", authController.resendForgotOtp);
 router.post("/reset-password", authController.resetPassword);
 
 router.post("/logout", authController.logout);
+
+router.post("/refresh-token", authController.refreshToken);
+
+router.post("/oauth/:authProvider", authController.oauth);
 
 export default router;

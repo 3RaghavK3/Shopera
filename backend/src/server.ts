@@ -4,6 +4,7 @@ import pool from "./config/db.js";
 import redis from "./config/redis.js";
 import errorHandler from "./02-middleware/errorHandler.js";
 import authRoutes from "./01-routes/auth.routes.js";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
@@ -45,6 +46,7 @@ async function start() {
   }
 }
 
+app.use(cookieParser());
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 

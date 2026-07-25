@@ -6,7 +6,7 @@ import { generateOtp } from "../utils/otp.js";
 import resend from "../config/email.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-
+import * as crypto from "crypto";
 dotenv.config();
 
 export interface Purpose{
@@ -144,7 +144,7 @@ export const login =async(email:string,password:string)=>{
          throw new AppError(401,"Invalid email or password");
      }
 
-     const token = jwt.sign(
+     const accessToken = jwt.sign(
       {
          userId: user.user_id,
          email: user.email,
@@ -155,8 +155,22 @@ export const login =async(email:string,password:string)=>{
       }
       );
 
+      const refreshToken = jwt.sign(
+      {
+         userId: user.user_id,
+      },
+      process.env.JWT_REFRESH_SECRET!,
+      {
+         expiresIn: "7d",
+      }
+      );
+
+      const hashedRefreshToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
+      await authrepository.setToken(user.user_id,hashedRefreshToken);
+
       return {
-      token,
+      accessToken,
+      refreshToken,
       user: {
          userId: user.user_id,
          name: user.name,
@@ -181,9 +195,14 @@ export const resetPassword=async(email:string,newPassword:string,confirmPassword
      const passwordHash=await bcrypt.hash(newPassword,12);
      await authrepository.setPassword(email,passwordHash);
      await redis.del(`forgot:verified:${email}`);
+
+     
+
      return {
         message:"Password reset succesfully"
      }
+
+     ;
 }
 
 export const forgotPassword=async(email:string)=>{
@@ -196,5 +215,13 @@ export const forgotPassword=async(email:string)=>{
       await sendOtp(email,"forgot");
       return {
          message:"Otp sent to your.Please enter the OTP to reset your password"
+      }
+}
+
+export const logout =async(refreshToken:string)=>{
+      const hashedRefreshToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
+      await authrepository.logout(hashedRefreshToken);
+      return {
+         message:"Logged out successfully"
       }
 }

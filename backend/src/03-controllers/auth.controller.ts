@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import * as authservice from "../04-services/auth.service.js";
+import { clearAuthCookies } from "../utils/clearcookies.js";
 
 export const signup = async (
   req: Request,
@@ -117,8 +118,9 @@ export const resetPassword = async (
 ) => {
   try {
     const {email,newPassword,confirmPassword}=req.body;
-    const reuslt=await authservice.resetPassword(email,newPassword,confirmPassword);
-    res.status(200).json(reuslt);
+    const result=await authservice.resetPassword(email,newPassword,confirmPassword);
+    res.status(200).json(result);
+    
   } catch (e) {
     next(e);
   }
@@ -130,19 +132,10 @@ export const logout = async (
   next: NextFunction,
 ) => {
   try {
-  } catch (e) {
-    next(e);
-  }
-};
-
-export const oauth = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const { authProvider } = req.params;
-    res.status(501).json({ message: `OAuth for ${authProvider} is not yet implemented.` });
+    const refreshToken = req.cookies.refreshToken;
+    const result=await authservice.logout(refreshToken);
+    clearAuthCookies(res);
+    res.status(200).json(result);
   } catch (e) {
     next(e);
   }

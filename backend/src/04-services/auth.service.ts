@@ -3,7 +3,7 @@ import AppError from "../utils/AppError.js";
 import bcrypt from "bcrypt"
 import redis from "../config/redis.js";
 import { generateOtp } from "../utils/otp.js";
-import resend from "../config/email.js";
+import transporter from "../config/email.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import * as crypto from "crypto";
@@ -18,8 +18,8 @@ export const sendOtp =async(email:string,purpose:"signup"|"forgot")=>{
        const subject = (purpose==="signup")?"ShoperaX - Sign Up Verification":"Shoperax - Password Reset";
        const otp=generateOtp();
        await redis.set(`${purpose}:otp:${email}`,otp,{ex:600})
-       await resend.emails.send({
-         from: "onboarding@resend.dev",
+       await transporter.sendMail({
+         from: "33raghavk33@gmail.com",
          to: email,
          subject,
          html: `

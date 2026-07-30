@@ -65,3 +65,7 @@ export async function findUserById(userId: number) {
 export async function logout(hashedRefreshToken:string){
      await pool.query(`delete  from refresh_tokens where token_hash=$1`,[hashedRefreshToken])
 }
+
+export async function deleteToken(hashedRefreshToken: string) {
+  await pool.query(`delete from refresh_tokens where token_hash=$1`, [hashedRefreshToken]);
+}

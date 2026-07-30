@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import * as crypto from "crypto";
 
 import AppError from "../utils/AppError.js";
-import { getToken, findUserById } from "../05-repository/auth.repository.js";
+import { getToken, findUserById, deleteToken, setToken } from "../05-repository/auth.repository.js";
 
 export const authenticate = async (
   req: Request,
@@ -30,7 +30,7 @@ export const authenticate = async (
 
       const refreshPayload = jwt.verify(
         refreshToken,
-        process.env.REFRESH_SECRET!,
+        process.env.JWT_REFRESH_SECRET!,
       ) as {
         userId: number;
       };
@@ -50,6 +50,17 @@ export const authenticate = async (
         return next(new AppError(401, "User not found."));
       }
 
+      // Rotate refresh token
+      const newRefreshToken = jwt.sign(
+        { userId: refreshPayload.userId },
+        process.env.JWT_REFRESH_SECRET!,
+        { expiresIn: "7d" }
+      );
+      const newHashedRefreshToken = crypto.createHash("sha256").update(newRefreshToken).digest("hex");
+      
+      await deleteToken(hashedRefreshToken);
+      await setToken(refreshPayload.userId, newHashedRefreshToken);
+
       const newAccessToken = jwt.sign(
         {
           userId: refreshPayload.userId,
@@ -61,7 +72,15 @@ export const authenticate = async (
         },
       );
 
-      res.cookie("accessToken", newAccessToken);
+      res.cookie("accessToken", newAccessToken, {
+        httpOnly: true,
+        maxAge: 15 * 60 * 1000,
+      });
+
+      res.cookie("refreshToken", newRefreshToken, {
+        httpOnly: true,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
 
       req.user = {
         userId: refreshPayload.userId,

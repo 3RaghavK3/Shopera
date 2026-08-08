@@ -13,4 +13,25 @@ router.post(
   interactionsController.trackInteraction
 );
 
+router.get(
+  "/top-subcategories",
+  authenticate,
+  validate(interactionsValidation.getTopSubcategoriesSchema, "query"),
+  interactionsController.getTopSubcategories
+);
+
+router.get(
+  "/top-attributes/:subcategoryId",
+  authenticate,
+  validate(interactionsValidation.getTopAttributesSchema, "params"),
+  interactionsController.getTopAttributes
+);
+
+router.get(
+  "/recommendations",
+  authenticate,
+  validate(interactionsValidation.getRecommendationsSchema, "query"),
+  interactionsController.getRecommendations
+);
+
 export default router;

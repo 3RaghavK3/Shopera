@@ -36,10 +36,27 @@ const rdcheck = async () => {
   }
 };
 
+import { cleanupQueue } from "./workers/interactionCleanup.worker.js";
+
 async function start() {
   const [db, redis] = await Promise.all([dbcheck(), rdcheck()]);
 
   if (db && redis) {
+    // Schedule background workers
+    await cleanupQueue.upsertJobScheduler(
+      "daily-cleanup-job",
+      { every: 24 * 60 * 60 * 1000 },
+      { name: "daily-cleanup", data: {} }
+    );
+    
+    // Pre-compute recommendations every 6 hours
+    await cleanupQueue.upsertJobScheduler(
+      "compute-recommendations-job",
+      { every: 6 * 60 * 60 * 1000 },
+      { name: "compute-recommendations", data: {} }
+    );
+    console.log("Cleanup and recommendation workers scheduled.");
+
     app.listen(port, () => {
       console.log(`Server running on port :${port}`);
     });

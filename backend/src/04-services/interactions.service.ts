@@ -2,6 +2,7 @@ import * as interactionsRepository from "../05-repository/interactions.repositor
 import * as usersRepository from "../05-repository/users.repository.js";
 import * as productsRepository from "../05-repository/products.repository.js";
 import AppError from "../utils/AppError.js";
+import { connection as redis } from "../config/bullmqRedis.js";
 
 export const trackInteraction = async (
   userId: number,
@@ -60,4 +61,62 @@ export const trackInteraction = async (
     purchaseCount,
     scoreDelta
   );
+};
+
+export const getTopSubcategories = async (userId: number, limit: number = 5) => {
+  return await interactionsRepository.getTopSubcategories(userId, limit);
+};
+
+export const getTopAttributes = async (
+  userId: number,
+  subcategoryId: number,
+  limit: number = 5
+) => {
+  return await interactionsRepository.getTopAttributes(userId, subcategoryId, limit);
+};
+
+export const computeAndCacheRecommendations = async (userId: number, totalLimit: number = 12) => {
+  const topSubcategories = await interactionsRepository.getTopSubcategories(userId, 3);
+  
+  if (topSubcategories.length === 0) {
+    return []; 
+  }
+  
+  const products = [];
+  const limitPerSubcat = Math.ceil(totalLimit / topSubcategories.length);
+  
+  for (const subcat of topSubcategories) {
+    // Get top 5 attributes for the scoring engine
+    const topAttrs = await interactionsRepository.getTopAttributes(userId, subcat.subcategory_id, 5);
+    
+    const formattedAttributes = topAttrs.map(attr => ({
+      id: attr.attribute_id,
+      value: attr.attribute_value
+    }));
+    
+    const subcatProducts = await productsRepository.getScoredProductsByAttributes(
+      subcat.subcategory_id,
+      formattedAttributes,
+      limitPerSubcat
+    );
+    
+    products.push(...subcatProducts);
+  }
+  
+  const finalProducts = products.slice(0, totalLimit);
+  
+  // Cache in Redis for 24 hours
+  await redis.setex(`user:${userId}:recommendations`, 86400, JSON.stringify(finalProducts));
+  
+  return finalProducts;
+};
+
+export const getRecommendations = async (userId: number, totalLimit: number = 12) => {
+  const cached = await redis.get(`user:${userId}:recommendations`);
+  if (cached) {
+    return JSON.parse(cached);
+  }
+  
+  // Fallback if not computed yet
+  return await computeAndCacheRecommendations(userId, totalLimit);
 };

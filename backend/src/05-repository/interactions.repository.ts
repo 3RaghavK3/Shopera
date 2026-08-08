@@ -62,3 +62,27 @@ export const trackInteractionsAtomic = async (
     client.release();
   }
 };
+
+export const getTopSubcategories = async (userId: number, limit: number = 5) => {
+  const result = await pool.query(
+    `SELECT subcategory_id, score
+     FROM user_subcategory_history
+     WHERE user_id = $1
+     ORDER BY score DESC
+     LIMIT $2`,
+    [userId, limit]
+  );
+  return result.rows;
+};
+
+export const getTopAttributes = async (userId: number, subcategoryId: number, limit: number = 5) => {
+  const result = await pool.query(
+    `SELECT attribute_id, attribute_value, score
+     FROM user_attribute_history
+     WHERE user_id = $1 AND subcategory_id = $2
+     ORDER BY score DESC
+     LIMIT $3`,
+    [userId, subcategoryId, limit]
+  );
+  return result.rows;
+};

@@ -148,3 +148,51 @@ export const getProductById = async (product_id: number) => {
   const result = await pool.query(queryText, [product_id]);
   return result.rows[0] || null;
 };
+
+export const getScoredProductsByAttributes = async (
+  subcategoryId: number,
+  attributes: { id: number; value: string }[],
+  limit: number
+) => {
+  if (attributes.length === 0) {
+    // Fallback to basic limit if no attributes provided
+    return getProducts({ subcategory_id: subcategoryId, limit, page: 1 });
+  }
+
+  let queryText = `
+    SELECT p.*,
+      (
+  `;
+
+  const queryParams: any[] = [subcategoryId, limit];
+  let paramIndex = 3;
+
+  const scoreCases = attributes.map(attr => {
+    const attrIdParam = paramIndex++;
+    const attrValueParam = paramIndex++;
+    queryParams.push(attr.id, attr.value);
+    
+    return `
+        (CASE WHEN EXISTS (
+          SELECT 1 FROM product_attributes pa 
+          WHERE pa.product_id = p.product_id 
+          AND pa.attribute_id = $${attrIdParam} 
+          AND pa.attribute_value = $${attrValueParam}
+        ) THEN 1 ELSE 0 END)
+    `;
+  });
+
+  queryText += scoreCases.join(' + ');
+
+  queryText += `
+      ) AS match_score
+    FROM products p
+    WHERE p.subcategory_id = $1
+    ORDER BY match_score DESC, p.product_id ASC
+    LIMIT $2;
+  `;
+
+  const result = await pool.query(queryText, queryParams);
+  return result.rows;
+};
+

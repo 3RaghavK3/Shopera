@@ -5,6 +5,8 @@ import redis from "./config/redis.js";
 import errorHandler from "./02-middleware/errorHandler.js";
 import authRoutes from "./01-routes/auth.routes.js";
 import productsRoutes from "./01-routes/products.routes.js";
+import usersRoutes from "./01-routes/users.routes.js";
+import interactionsRoutes from "./01-routes/interactions.routes.js";
 import cookieParser from "cookie-parser";
 
 dotenv.config();
@@ -51,6 +53,8 @@ app.use(cookieParser());
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productsRoutes);
+app.use("/api/users", usersRoutes);
+app.use("/api/interactions", interactionsRoutes);
 
 app.use(errorHandler);
 start();

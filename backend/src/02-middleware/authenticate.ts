@@ -1,7 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import * as crypto from "crypto";
-
 import AppError from "../utils/AppError.js";
 import { getToken, findUserById, deleteToken, setToken } from "../05-repository/auth.repository.js";
 
@@ -50,7 +49,6 @@ export const authenticate = async (
         return next(new AppError(401, "User not found."));
       }
 
-      // Rotate refresh token
       const newRefreshToken = jwt.sign(
         { userId: refreshPayload.userId },
         process.env.JWT_REFRESH_SECRET!,

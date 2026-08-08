@@ -4,7 +4,7 @@ import { GetProductsQuery } from "../06-validations/products.validation.js";
 export const searchProducts = async (query: string) => {
   const client = await pool.connect();
   try {
-    await client.query("SET pg_trgm.similarity_threshold = 0.15");
+    await client.query("SET pg_trgm.similarity_threshold = 0.13");
 
     const result = await client.query(
       `
@@ -20,7 +20,7 @@ export const searchProducts = async (query: string) => {
       [query]
     );
 
-    await client.query("SET pg_trgm.similarity_threshold = 0.3");
+
     return result.rows;
   } finally {
     client.release();
